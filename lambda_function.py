@@ -110,7 +110,7 @@ def lambda_handler(event, context):
             # Define a loop to iterate over each row
             for index, row in df.iterrows():
                 # Perform the appropriate action based on the source table
-                # The assumption is that the first column is the action and the second is the primary key
+                # The assumption is that the first column is the action and the second is the primary key.
                 if row[0] == 'I':
                     # Drop column 'Op' from the DataFrame
                     print('The action is: ', row[0])
