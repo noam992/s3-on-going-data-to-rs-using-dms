@@ -12,16 +12,6 @@ s3_bucket = 'poc-toluna'
 # expose after uploading the files to lambda
 s3 = boto3.client('s3')
 
-# Specify your AWS credentials and region
-# Remove after uploading the files to lambda
-# aws_access_key_id = 'AKIAZ56AN5CHLY6KLKCU'
-# aws_secret_access_key = 'eXAiprqxyQF49nkoVrT8mhvRzPZ8Qj2fuz5Jw7hF'
-# aws_region = 'eu-west-1'
-#
-# # Establish the connection to S3
-# s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, region_name=aws_region)
-
-
 # Establish the connection to Redshift
 redshift_host = 'redshift-sandbox.cqbdyi9dryca.us-east-1.redshift.amazonaws.com'
 redshift_db = 'dev'
