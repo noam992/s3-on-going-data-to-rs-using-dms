@@ -1,6 +1,5 @@
 import boto3
 import pandas as pd
-import pyarrow as pa
 import pyarrow.parquet as pq
 import psycopg2
 from io import BytesIO
@@ -58,11 +57,10 @@ def update_records(cursor, data, redshift_table):
         cursor.execute(query)
 
 
-def delete_records(cursor, data, redshift_table, column_name_arr):
-    for index, row in data.iterrows():
-        # Assuming the table has columns: col1, col2, col3
-        query = f"DELETE FROM {redshift_table} WHERE col1 = '{row['col1']}'"
-        cursor.execute(query)
+def delete_records(cursor, pk_value, redshift_table, pk_column_name):
+    query = f"DELETE FROM {redshift_table} WHERE {pk_column_name} = '{pk_value}'"
+    print('Delete statement: ', query)
+    cursor.execute(query)
 
 
 def create_string_value(row):
@@ -105,14 +103,15 @@ def lambda_handler(event, context):
             df = table.to_pandas()
             # Get the column names of the DataFrame, Exclude the first and the second columns (first = action, second= primary key)
             source_columns = df.columns[2:]
-            print('Columns name: ', source_columns)
+            source_pk_column = df.columns[1]
 
             # Define a loop to iterate over each row
             for index, row in df.iterrows():
                 # Perform the appropriate action based on the source table
-                # The assumption is that the first column is the action and the second is the primary key.
+                # The assumption is that the first column is the action and the second is the primary key
                 if row[0] == 'I':
                     # Drop column 'Op' from the DataFrame
+                    print('Columns name: ', source_columns)
                     print('The action is: ', row[0])
                     print('The primary key is: ', row[1])
                     print('The record content is (before modifying): ', row)
@@ -120,8 +119,10 @@ def lambda_handler(event, context):
                     insert_records(cursor, row[2:], source_table, source_columns)
                 # elif row[0] == 'U':
                 #     update_records(cursor, df, table)
-                # elif row[0] == 'D':
-                #     delete_records(cursor, df, table)
+                elif row[0] == 'D':
+                    print('Primary Key, column name: ', source_pk_column)
+                    print('The primary key is: ', row[1])
+                    delete_records(cursor, row[1], source_table, source_pk_column)
 
             # Commit the changes to Redshift
             conn.commit()
