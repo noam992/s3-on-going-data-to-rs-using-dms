@@ -1,2 +1,2 @@
-pyarrow
+fastparquet
 psycopg2-binary

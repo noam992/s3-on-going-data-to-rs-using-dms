@@ -1,5 +1,5 @@
 import boto3
-import pyarrow.parquet as pq
+import fastparquet
 import psycopg2
 from io import BytesIO
 
@@ -97,9 +97,8 @@ def lambda_handler(event, context):
 
             # Load the Parquet file into a Pandas DataFrame
             s3_object = s3.get_object(Bucket=s3_bucket, Key=key)
-            parquet_file = pq.ParquetFile(BytesIO(s3_object['Body'].read()))
-            table = parquet_file.read()
-            df = table.to_pandas()
+            parquet_file = fastparquet.ParquetFile(BytesIO(s3_object['Body'].read()))
+            df = parquet_file.to_pandas()
             # Get the column names of the DataFrame, Exclude the first and the second columns (first = action, second= primary key)
             source_columns = df.columns[2:]
             source_pk_column = df.columns[1]
