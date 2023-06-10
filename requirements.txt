@@ -1,2 +1,2 @@
-pyarrow
+pyarrow.parquet
 psycopg2
