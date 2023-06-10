@@ -18,14 +18,17 @@ redshift_password = 'AwsuserAwsuser1'
 redshift_port = '5439'
 redshift_schema = 'public'
 
-conn = psycopg2.connect(
-    host=redshift_host,
-    dbname=redshift_db,
-    user=redshift_user,
-    password=redshift_password,
-    port=redshift_port
-)
 
+def redshift_connection():
+    conn = psycopg2.connect(
+        host=redshift_host,
+        dbname=redshift_db,
+        user=redshift_user,
+        password=redshift_password,
+        port=redshift_port
+    )
+
+    return conn
 
 # def select_records(cursor, redshift_table):
 #     query = f"SELECT * FROM {redshift_table}"
@@ -78,6 +81,7 @@ def create_string_value(row):
 
 def lambda_handler(event, context):
 
+    conn = redshift_connection()
     cursor = conn.cursor()
 
     # Iterate through the S3 bucket
