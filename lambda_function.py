@@ -41,7 +41,7 @@ def select_records(cursor, redshift_table):
 
 
 def insert_records(cursor, row, redshift_table, columns):
-    # Create a string with columns name
+    # Create a string with columns name.
     column_string = '(' + ', '.join(columns) + ')'
     value_string = create_string_value(row)
     query = f"INSERT INTO {redshift_schema}.{redshift_table} {column_string} VALUES {value_string}"
