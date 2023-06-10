@@ -1,5 +1,4 @@
 import boto3
-import pandas as pd
 import pyarrow.parquet as pq
 import psycopg2
 from io import BytesIO
@@ -28,16 +27,16 @@ conn = psycopg2.connect(
 )
 
 
-def select_records(cursor, redshift_table):
-    query = f"SELECT * FROM {redshift_table}"
-    cursor.execute(query)
-    # Fetch all the rows returned by the query
-    rows = cursor.fetchall()
-    # Get the column names from the cursor description
-    column_names = [desc[0] for desc in cursor.description]
-    # Create a DataFrame using the fetched rows and column names
-    data = pd.DataFrame(rows, columns=column_names)
-    return data
+# def select_records(cursor, redshift_table):
+#     query = f"SELECT * FROM {redshift_table}"
+#     cursor.execute(query)
+#     # Fetch all the rows returned by the query
+#     rows = cursor.fetchall()
+#     # Get the column names from the cursor description
+#     column_names = [desc[0] for desc in cursor.description]
+#     # Create a DataFrame using the fetched rows and column names
+#     data = pd.DataFrame(rows, columns=column_names)
+#     return data
 
 
 def insert_records(cursor, row, redshift_table, columns):
