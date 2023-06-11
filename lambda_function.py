@@ -2,6 +2,7 @@ import boto3
 import fastparquet
 import psycopg2
 from io import BytesIO
+import urllib.parse
 
 # General Variables
 s3_bucket = 'poc-toluna'
@@ -84,11 +85,18 @@ def lambda_handler(event, context):
     conn = redshift_connection()
     cursor = conn.cursor()
 
-    # Iterate through the S3 bucket
-    response = s3.list_objects_v2(Bucket=s3_bucket, Prefix='intermediate/')
+    # Extract the bucket name and key from the S3 event
+    bucket = event['Records'][0]['s3']['bucket']['name']
+    key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'])
 
-    for obj in response['Contents']:
-        key = obj['Key']
+    # Print the extracted key for demonstration purposes
+    print(f"Extracted key: {key}")
+
+    # Split the key into directories and filename
+    directories, filename = key.split('/', 1)
+
+    # Check if the first directory is 'intermediate'
+    if directories.split('/')[0] == 'intermediate':
         if key.endswith('.parquet'):
 
             # Extract source_table, year, month, and day from the key. sample intermediate/source_table/year=yyyy/month=mm/day=dd/file_name.parquet
@@ -96,38 +104,42 @@ def lambda_handler(event, context):
 
             # Skip initial content
             if "LOAD" in file_name:
+                # Load the Parquet file into a Pandas DataFrame
+                s3_object = s3.get_object(Bucket=s3_bucket, Key=key)
+                parquet_file = fastparquet.ParquetFile(BytesIO(s3_object['Body'].read()))
+                df = parquet_file.to_pandas()
+                # Get the column names of the DataFrame, Exclude the first and the second columns (first = action, second= primary key)
+                source_columns = df.columns[2:]
+                source_pk_column = df.columns[1]
+
+                # Define a loop to iterate over each row
+                for index, row in df.iterrows():
+                    # Perform the appropriate action based on the source table
+                    # The assumption is that the first column is the action and the second is the primary key
+                    if row[0] == 'I':
+                        # Drop column 'Op' from the DataFrame
+                        print('Columns name: ', source_columns)
+                        print('The action is: ', row[0])
+                        print('The primary key is: ', row[1])
+                        print('The record content is (before modifying): ', row)
+                        print('The record content is (after modifying): ', row[2:])
+                        insert_records(cursor, row[2:], source_table, source_columns)
+                    # elif row[0] == 'U':
+                    #     update_records(cursor, df, table)
+                    elif row[0] == 'D':
+                        print('Primary Key, column name: ', source_pk_column)
+                        print('The primary key is: ', row[1])
+                        delete_records(cursor, row[1], source_table, source_pk_column)
+
+                    # Commit the changes to Redshift
+                    conn.commit()
+
+            else:
                 print(key, 'Contains an initial content, Skip on that..')
-                continue
-
-            # Load the Parquet file into a Pandas DataFrame
-            s3_object = s3.get_object(Bucket=s3_bucket, Key=key)
-            parquet_file = fastparquet.ParquetFile(BytesIO(s3_object['Body'].read()))
-            df = parquet_file.to_pandas()
-            # Get the column names of the DataFrame, Exclude the first and the second columns (first = action, second= primary key)
-            source_columns = df.columns[2:]
-            source_pk_column = df.columns[1]
-
-            # Define a loop to iterate over each row
-            for index, row in df.iterrows():
-                # Perform the appropriate action based on the source table
-                # The assumption is that the first column is the action and the second is the primary key
-                if row[0] == 'I':
-                    # Drop column 'Op' from the DataFrame
-                    print('Columns name: ', source_columns)
-                    print('The action is: ', row[0])
-                    print('The primary key is: ', row[1])
-                    print('The record content is (before modifying): ', row)
-                    print('The record content is (after modifying): ', row[2:])
-                    insert_records(cursor, row[2:], source_table, source_columns)
-                # elif row[0] == 'U':
-                #     update_records(cursor, df, table)
-                elif row[0] == 'D':
-                    print('Primary Key, column name: ', source_pk_column)
-                    print('The primary key is: ', row[1])
-                    delete_records(cursor, row[1], source_table, source_pk_column)
-
-            # Commit the changes to Redshift
-            conn.commit()
+        else:
+            print(key, 'Isnt parquet file, Skip on that..')
+    else:
+        print(key, 'Isnt intermediate directory, Skip on that..')
 
     # Close the connection to Redshift
     conn.close()
