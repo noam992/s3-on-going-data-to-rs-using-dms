@@ -86,7 +86,6 @@ def lambda_handler(event, context):
     cursor = conn.cursor()
 
     # Extract the bucket name and key from the S3 event
-    bucket = event['Records'][0]['s3']['bucket']['name']
     key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'])
 
     # Print the extracted key for demonstration purposes
@@ -103,7 +102,7 @@ def lambda_handler(event, context):
             stage, source_table, year, month, day, file_name = key.split('/')
 
             # Skip initial content
-            if "LOAD" in file_name:
+            if not "LOAD" in file_name:
                 # Load the Parquet file into a Pandas DataFrame
                 s3_object = s3.get_object(Bucket=s3_bucket, Key=key)
                 parquet_file = fastparquet.ParquetFile(BytesIO(s3_object['Body'].read()))
