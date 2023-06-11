@@ -90,10 +90,14 @@ def lambda_handler(event, context):
     messages = event['Records']
     for message in messages:
         body = json.loads(message['body'])
-        key = body['Records'][0]['s3']['object']['key']
+        encode_key = body['Records'][0]['s3']['object']['key']
 
         # Print the extracted key for demonstration purposes
-        print(f"Extracted key: {key}")
+        print(f"Extracted encode key: {encode_key}")
+
+        # URL decode the key
+        key = urllib.parse.unquote(encode_key)
+        print('decoded_key: ', key)
 
         # Split the key into directories and filename
         directories, filename = key.split('/', 1)
