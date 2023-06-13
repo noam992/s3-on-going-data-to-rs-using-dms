@@ -4,7 +4,7 @@ import psycopg2
 from io import BytesIO
 
 # General Variables
-s3_bucket = 'poc-toluna'
+s3_bucket = 'poc-toluna-nv'
 
 # Establish the connection to S3 -
 # expose after uploading the files to lambda
