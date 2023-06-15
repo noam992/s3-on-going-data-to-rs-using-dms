@@ -83,7 +83,7 @@ def create_string_value(row):
     for column_name, value in row.items():
         # Add the formatted column value to the list
         # values.append("'" + str(value) + "'")
-        values.append(str(value))
+        values.append("'" + str(value) + "'")
 
     # Create the string with the desired structure for the current row
     row_string = "(" + ", ".join(values) + ")"
