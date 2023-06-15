@@ -1,25 +1,35 @@
 import boto3
 import fastparquet
 import psycopg2
+import json
 from io import BytesIO
 
 # General Variables
 s3_bucket = 'poc-toluna-nv'
+redshift_schema = 'public'
 
 # Establish the connection to S3 -
 # expose after uploading the files to lambda
 s3 = boto3.client('s3')
 
-# Establish the connection to Redshift
-redshift_host = 'redshift-sandbox.cqbdyi9dryca.us-east-1.redshift.amazonaws.com'
-redshift_db = 'dev'
-redshift_user = 'awsuser'
-redshift_password = 'AwsuserAwsuser1'
-redshift_port = '5439'
-redshift_schema = 'public'
-
-
 def redshift_connection():
+
+    # Retrieve Redshift credentials from Secrets Manager
+    secrets_manager_client = boto3.client('secretsmanager')
+    secret_name = 'redshift-secret-toluna'
+    response = secrets_manager_client.get_secret_value(SecretId=secret_name)
+    secret_value = response['SecretString']
+
+    # Parse the secret value as JSON
+    credentials = json.loads(secret_value)
+
+    # Create a connection to Redshift
+    redshift_host = credentials['host']
+    redshift_user = credentials['username']
+    redshift_password = credentials['password']
+    redshift_db = 'dev'
+    redshift_port = '5439'
+
     conn = psycopg2.connect(
         host=redshift_host,
         dbname=redshift_db,
@@ -72,7 +82,8 @@ def create_string_value(row):
     # Iterate over each column value in the current row
     for column_name, value in row.items():
         # Add the formatted column value to the list
-        values.append("'" + str(value) + "'")
+        # values.append("'" + str(value) + "'")
+        values.append(str(value))
 
     # Create the string with the desired structure for the current row
     row_string = "(" + ", ".join(values) + ")"
