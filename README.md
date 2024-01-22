@@ -1,4 +1,4 @@
-# s3-on-going-data-rs
+# DMS CDC on going data using S3 to Redshift
 This repository contains code for handling ongoing data changes in an on-premise SQL database using AWS services. The primary components are AWS Lambda Function, AWS DMS, and AWS CodeBuild.
 
 ## Technology
