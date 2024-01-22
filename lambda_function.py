@@ -5,8 +5,8 @@ import json
 from io import BytesIO
 
 # General Variables
-s3_bucket = 'poc-toluna-nv'
-redshift_schema = 'public'
+s3_bucket = '<insert bucket name>'
+redshift_schema = '<insert rs schema>'
 
 # Establish the connection to S3 -
 # expose after uploading the files to lambda
@@ -16,7 +16,7 @@ def redshift_connection():
 
     # Retrieve Redshift credentials from Secrets Manager
     secrets_manager_client = boto3.client('secretsmanager')
-    secret_name = 'redshift-secret-toluna'
+    secret_name = '<insert the secret code>'
     response = secrets_manager_client.get_secret_value(SecretId=secret_name)
     secret_value = response['SecretString']
 
