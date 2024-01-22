@@ -1,14 +1,11 @@
 # s3-on-going-data-rs
+This repository contains code for handling ongoing data changes in an on-premise SQL database using AWS services. The primary components are AWS Lambda Function, AWS DMS, and AWS CodeBuild.
 
 ## Technology
 
 - AWS Lambda Function
 - AWS DMS (Database Migration Service)
 - AWS CodeBuild
-
-## Overview
-
-This repository contains code for handling ongoing data changes in an on-premise SQL database using AWS services. The primary components are AWS Lambda Function, AWS DMS, and AWS CodeBuild.
 
 ### AWS Lambda Function
 
